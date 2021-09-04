@@ -5,8 +5,6 @@ from rest_framework import generics
 from rest_framework.decorators import api_view
 from django.utils import timezone
 from django.utils.timezone import localtime
-from rest_framework import viewsets
-from django_filters import rest_framework as filters
 
 # Create your views here.
 
