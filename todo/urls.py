@@ -3,11 +3,17 @@ from todo import views
 
 
 urlpatterns = [
-     path("list/len", views.listlength),
-     path("list/0", views.ListViewBoolFalse.as_view()),
-     path("list/1", views.ListViewBoolTrue.as_view()),
-     path("retrieve/<str:pk>", views.RetrieveView.as_view()),
-     path("create", views.CreateView.as_view()),
-     path("update/<str:pk>", views.UpdateView.as_view()),
-     path("delete/<str:pk>", views.DeleteView.as_view()),
+     path("todolist/1/<str:uuid>", views.todolisttrue),
+     path("todolist/0/<str:uuid>", views.todolistfalse),
+     path("todolist/len/<str:uuid>", views.opacitylen),
+     path("retrieve/<str:pk>", views.TodoRetrieveView.as_view()),
+     path("create", views.TodoCreateView.as_view()),
+     path("update/<str:pk>", views.TodoUpdateView.as_view()),
+     path("delete/<str:pk>", views.TodoDeleteView.as_view()),
+     path("user/list", views.UserList.as_view()),
+     path("user/retrieve/<str:uuid>", views.userretrieve),
+     path("user/create", views.UserCreate.as_view()),
+     path("user/update/<str:pk>", views.UserUpdate.as_view()),
+     path("notificationtarget/<str:uuid>", views.notificationtarget),
+     path("notification/overdue/<str:uuid>", views.notificationlength),
 ]

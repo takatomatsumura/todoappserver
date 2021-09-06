@@ -1,12 +1,12 @@
 from django.db import models
 import datetime
-from django.db.models.fields import TextField
 
 # Create your models here.
 
 class TodoUser(models.Model):
     uuid=models.CharField(max_length=500)
     name=models.CharField(max_length=200, default="user0", blank=True, null=True)
+    displayuser=models.ManyToManyField("self", blank=True)
 
 class Todo(models.Model):
     title=models.CharField(max_length=200, default="title")
