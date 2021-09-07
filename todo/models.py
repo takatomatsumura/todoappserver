@@ -6,7 +6,7 @@ import datetime
 class TodoUser(models.Model):
     uuid=models.CharField(max_length=500)
     name=models.CharField(max_length=200, default="user0", blank=True, null=True)
-    displayuser=models.ManyToManyField("self", blank=True)
+    displayuser=models.ManyToManyField("self", blank=True, symmetrical=False)
 
 class Todo(models.Model):
     title=models.CharField(max_length=200, default="title")

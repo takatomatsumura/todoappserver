@@ -1,5 +1,3 @@
-from django.db.models import fields
-from django.db.models.fields import Field
 from .models import Todo, TodoUser
 from rest_framework import serializers
 
@@ -12,9 +10,22 @@ class TodoUserSerializer(serializers.ModelSerializer):
         model=TodoUser
         fields=("id", "uuid", "name", "displayuser",)
 
+class UserSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model=TodoUser
+        fields=("id", "uuid", "name")
+
+class TodoGetSerializer(serializers.ModelSerializer):
+    owner=UserSerializer(read_only=True)
+
+    class Meta:
+        model=Todo
+        fields=("id", "title", "date", "donebool", "image", "owner")
+
 class TodoSerializer(serializers.ModelSerializer):
     owner=TodoUserSerializer
 
     class Meta:
         model=Todo
-        fields=("id", "title", "date", "donebool", "image", "owner",)
+        fields=("id", "title", "date", "donebool", "image", "owner")

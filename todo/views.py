@@ -1,12 +1,11 @@
 from .models import Todo, TodoUser
-from .serializers import TodoSerializer, TodoUserSerializer
+from .serializers import TodoSerializer, TodoUserSerializer, TodoGetSerializer
 from rest_framework.response import Response
 from rest_framework import generics
 from rest_framework.decorators import api_view
 from django.utils import timezone
 from django.utils.timezone import localtime
 from django.core import serializers
-import json
 
 # Create your views here.
 
@@ -16,8 +15,8 @@ def todolisttrue(request, uuid):
         owner=TodoUser.objects.get(uuid=uuid)
         ownerserializer=TodoUserSerializer(owner, many=False)
         queryset=Todo.objects.filter(donebool=True, owner__in=ownerserializer.data["displayuser"])
-        jsondata = serializers.serialize("json", queryset)
-        return Response({"todo": jsondata})
+        jsondata=TodoGetSerializer(queryset, many=True)
+        return Response({"todo": jsondata.data})
 
 @api_view(["GET"])
 def todolistfalse(request, uuid):
@@ -25,8 +24,8 @@ def todolistfalse(request, uuid):
         owner=TodoUser.objects.get(uuid=uuid)
         ownerserializer=TodoUserSerializer(owner, many=False)
         queryset=Todo.objects.filter(donebool=False, owner__in=ownerserializer.data["displayuser"])
-        jsondata = serializers.serialize("json", queryset)
-        return Response({"todo": jsondata})
+        jsondata=TodoGetSerializer(queryset, many=True)
+        return Response({"todo": jsondata.data})
 
 @api_view(['GET'])
 def opacitylen(request, uuid):
@@ -39,7 +38,7 @@ def opacitylen(request, uuid):
 
 class TodoRetrieveView(generics.RetrieveAPIView):
     queryset = Todo.objects.filter()
-    serializer_class = TodoSerializer
+    serializer_class = TodoGetSerializer
 
 class TodoCreateView(generics.CreateAPIView):
     serializer_class = TodoSerializer
