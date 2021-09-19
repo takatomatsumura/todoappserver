@@ -40,12 +40,34 @@ class TodoRetrieveView(generics.RetrieveAPIView):
     queryset = Todo.objects.filter()
     serializer_class = TodoGetSerializer
 
-class TodoCreateView(generics.CreateAPIView):
-    serializer_class = TodoSerializer
+@api_view(['GET', 'POST'])
+def todocreate(request):
+    title=request.POST["title"]
+    date=request.POST["date"]
+    owner=TodoUser.objects.get(id=request.POST["owner"])
+    image=None
+    if request.FILES!={}:
+        image=request.FILES['image']
+    todo=Todo(title=title, date=date, donebool=False, owner=owner, image=image)
+    todo.save()
+    todoserializer=TodoSerializer(todo, many=False)
+    return Response({"todo": todoserializer.data})
 
 class TodoUpdateView(generics.UpdateAPIView):
     queryset = Todo.objects.all()
     serializer_class = TodoSerializer
+
+@api_view(['GET', 'PATCH'])
+def todoupdate(request, pk):
+    todo=Todo.objects.get(id=pk)
+    todo.title=request.POST["title"]
+    todo.date=request.POST["date"]
+    todo.owner=TodoUser.objects.get(id=request.POST["owner"])
+    if request.FILES!={}:
+        todo.image=request.FILES['image']
+    todo.save()
+    todoserializer=TodoSerializer(todo, many=False)
+    return Response({"todo": todoserializer.data})
 
 class TodoDeleteView(generics.DestroyAPIView):
     queryset = Todo.objects.all()
