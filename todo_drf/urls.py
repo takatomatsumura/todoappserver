@@ -15,11 +15,13 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from django.conf.urls import include, url
-from rest_framework.routers import DefaultRouter
-from todo import views
+from django.conf.urls import include
+from django.contrib.staticfiles.urls import static
+from . import settings
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path("todos/", include("todo.urls")),
 ]
+
+urlpatterns+=static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

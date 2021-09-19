@@ -12,8 +12,8 @@ class Todo(models.Model):
     title=models.CharField(max_length=200, default="title")
     date=models.DateTimeField(default=datetime.datetime.now().strftime("%Y-%m-%d %H:%M"))
     donebool=models.BooleanField(default=False) 
-    image=models.TextField(blank=True, null=True)
-    owner=models.ForeignKey(TodoUser, on_delete=models.CASCADE, blank=True, null=True)
+    image=models.ImageField(upload_to='images/', blank=True, null=True)
+    owner=models.ForeignKey(TodoUser, on_delete=models.CASCADE)
 
     class Meta:
         ordering=("date",)
