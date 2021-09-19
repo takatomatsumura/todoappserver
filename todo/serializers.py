@@ -21,11 +21,11 @@ class TodoGetSerializer(serializers.ModelSerializer):
 
     class Meta:
         model=Todo
-        fields=("id", "title", "date", "donebool", "image", "owner")
+        fields=("id", "title", "date", "donebool", "image", "image", "owner")
 
 class TodoSerializer(serializers.ModelSerializer):
     owner=TodoUserSerializer
 
     class Meta:
         model=Todo
-        fields=("id", "title", "date", "donebool", "image", "owner")
+        fields=("id", "title", "date", "donebool", "image", "image",  "owner")
