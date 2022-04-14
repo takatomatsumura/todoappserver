@@ -1,7 +1,7 @@
 from .models import Todo, TodoUser
 from .serializers import TodoSerializer, TodoUserSerializer, TodoGetSerializer
 from rest_framework.response import Response
-from rest_framework import generics
+from rest_framework import generics, views
 from rest_framework.decorators import api_view
 from django.utils import timezone
 from django.utils.timezone import localtime
@@ -9,103 +9,200 @@ from django.core import serializers
 
 # Create your views here.
 
+
 @api_view(["GET"])
 def todolisttrue(request, uuid):
-    if request.method=="GET":
-        owner=TodoUser.objects.get(uuid=uuid)
-        ownerserializer=TodoUserSerializer(owner, many=False)
-        queryset=Todo.objects.filter(donebool=True, owner__in=ownerserializer.data["displayuser"])
-        jsondata=TodoGetSerializer(queryset, many=True)
+    if request.method == "GET":
+        owner = TodoUser.objects.get(uuid=uuid)
+        ownerserializer = TodoUserSerializer(owner, many=False)
+        queryset = Todo.objects.filter(
+            donebool=True, owner__in=ownerserializer.data["displayuser"]
+        ).select_related()
+        jsondata = TodoGetSerializer(queryset, many=True)
         return Response({"todo": jsondata.data})
+
+
+class TodoListTrueView(generics.ListAPIView):
+    serializer_class = TodoGetSerializer
+
+    def get_queryset(self, **kwargs):
+        uuid = self.kwargs["uuid"]
+        owner = TodoUser.objects.get(uuid=uuid)
+        ownerserializer = TodoUserSerializer(owner, many=False)
+        queryset = Todo.objects.filter(
+            donebool=True, owner__in=ownerserializer.data["displayuser"]
+        ).select_related()
+        return queryset
+
 
 @api_view(["GET"])
 def todolistfalse(request, uuid):
-    if request.method=="GET":
-        owner=TodoUser.objects.get(uuid=uuid)
-        ownerserializer=TodoUserSerializer(owner, many=False)
-        queryset=Todo.objects.filter(donebool=False, owner__in=ownerserializer.data["displayuser"])
-        jsondata=TodoGetSerializer(queryset, many=True)
+    if request.method == "GET":
+        owner = TodoUser.objects.get(uuid=uuid)
+        ownerserializer = TodoUserSerializer(owner, many=False)
+        queryset = Todo.objects.filter(
+            donebool=False, owner__in=ownerserializer.data["displayuser"]
+        ).select_related()
+        jsondata = TodoGetSerializer(queryset, many=True)
         return Response({"todo": jsondata.data})
 
-@api_view(['GET'])
+
+class TodoListFalseView(generics.ListAPIView):
+    serializer_class = TodoGetSerializer
+
+    def get_queryset(self, **kwargs):
+        uuid = self.kwargs["uuid"]
+        owner = TodoUser.objects.get(uuid=uuid)
+        ownerserializer = TodoUserSerializer(owner, many=False)
+        queryset = Todo.objects.filter(
+            donebool=False, owner__in=ownerserializer.data["displayuser"]
+        ).select_related()
+        return queryset
+
+
+@api_view(["GET"])
 def opacitylen(request, uuid):
-    if request.method=="GET":
-        owner=TodoUser.objects.get(uuid=uuid)
-        ownerserializer=TodoUserSerializer(owner, many=False)
-        queryset=Todo.objects.filter(donebool=False, date__lte=localtime(timezone.now()), owner__in=ownerserializer.data["displayuser"])
-        listlen=len(queryset)
+    if request.method == "GET":
+        owner = TodoUser.objects.get(uuid=uuid)
+        ownerserializer = TodoUserSerializer(owner, many=False)
+        queryset = Todo.objects.filter(
+            donebool=False,
+            date__lte=localtime(timezone.now()),
+            owner__in=ownerserializer.data["displayuser"],
+        )
+        listlen = queryset.count()
         return Response({"listlen": listlen})
+
+
+class OpacityLenView(views.APIView):
+    def get(self, **kwargs):
+        uuid = self.kwargs["uuid"]
+        owner = TodoUser.objects.get(uuid=uuid)
+        ownerserializer = TodoUserSerializer(owner, many=False)
+        queryset = Todo.objects.filter(
+            donebool=False,
+            date__lte=localtime(timezone.now()),
+            owner__in=ownerserializer.data["displayuser"],
+        )
+        listlen = queryset.count()
+        return Response({"listlen": listlen})
+
 
 class TodoRetrieveView(generics.RetrieveAPIView):
     queryset = Todo.objects.filter()
     serializer_class = TodoGetSerializer
 
-@api_view(['GET', 'POST'])
+
+@api_view(["GET", "POST"])
 def todocreate(request):
-    title=request.POST["title"]
-    date=request.POST["date"]
-    owner=TodoUser.objects.get(id=request.POST["owner"])
-    image=None
-    if request.FILES!={}:
-        image=request.FILES['image']
-    todo=Todo(title=title, date=date, donebool=False, owner=owner, image=image)
+    title = request.POST["title"]
+    date = request.POST["date"]
+    owner = TodoUser.objects.get(id=request.POST["owner"])
+    image = None
+    if request.FILES != {}:
+        image = request.FILES["image"]
+    todo = Todo(title=title, date=date, donebool=False, owner=owner, image=image)
     todo.save()
-    todoserializer=TodoSerializer(todo, many=False)
+    todoserializer = TodoSerializer(todo, many=False)
     return Response({"todo": todoserializer.data})
+
+
+class TodoCreateView(generics.CreateAPIView):
+    serializer_class = TodoSerializer
+
+    def perform_create(self, serializer):
+        owner = TodoUser.objects.get(id=self.kwargs["uuid"])
+        serializer.save(owner=owner)
+
 
 class TodoUpdateView(generics.UpdateAPIView):
     queryset = Todo.objects.all()
     serializer_class = TodoSerializer
 
-@api_view(['GET', 'PATCH'])
+
+@api_view(["GET", "PATCH"])
 def todoupdate(request, pk):
-    todo=Todo.objects.get(id=pk)
-    todo.title=request.POST["title"]
-    todo.date=request.POST["date"]
-    todo.owner=TodoUser.objects.get(id=request.POST["owner"])
-    if request.FILES!={}:
-        todo.image=request.FILES['image']
+    todo = Todo.objects.get(id=pk)
+    todo.title = request.POST["title"]
+    todo.date = request.POST["date"]
+    todo.owner = TodoUser.objects.get(id=request.POST["owner"])
+    if request.FILES != {}:
+        todo.image = request.FILES["image"]
     todo.save()
-    todoserializer=TodoSerializer(todo, many=False)
+    todoserializer = TodoSerializer(todo, many=False)
     return Response({"todo": todoserializer.data})
+
 
 class TodoDeleteView(generics.DestroyAPIView):
     queryset = Todo.objects.all()
     serializer_class = TodoSerializer
 
+
 class UserList(generics.ListAPIView):
-    queryset=TodoUser.objects.all()
+    queryset = TodoUser.objects.all()
     serializer_class = TodoUserSerializer
+
 
 @api_view(["GET"])
 def userretrieve(request, uuid):
-    if request.method=="GET":
+    if request.method == "GET":
         if TodoUser.objects.filter(uuid=uuid).exists():
-            user=TodoUser.objects.get(uuid=uuid)
-            userserializer=TodoUserSerializer(user, many=False)
+            user = TodoUser.objects.get(uuid=uuid)
+            userserializer = TodoUserSerializer(user, many=False)
             return Response({"todouser": userserializer.data})
         else:
             return Response({"todouser": {"uuid": None}})
 
+
+class UserRetrieveView(generics.RetrieveAPIView):
+    serializer_class = TodoUserSerializer
+
+
 class UserCreate(generics.CreateAPIView):
     serializer_class = TodoUserSerializer
+
 
 class UserUpdate(generics.UpdateAPIView):
     queryset = TodoUser.objects.all()
     serializer_class = TodoUserSerializer
 
+
 @api_view(["GET"])
 def notificationtarget(request, uuid):
-    if request.method=="GET":
-        owner=TodoUser.objects.get(uuid=uuid)
-        queryset=Todo.objects.filter(donebool=False, owner=owner)
+    if request.method == "GET":
+        owner = TodoUser.objects.get(uuid=uuid)
+        queryset = Todo.objects.filter(donebool=False, owner=owner)
         jsondata = serializers.serialize("json", queryset)
         return Response({"todo": jsondata})
 
-@api_view(['GET'])
+
+class NotificationTargetView(generics.ListAPIView):
+    serializer_class = serializers
+
+    def get_queryset(self, **kwargs):
+        uuid = self.kwargs["uuid"]
+        owner = TodoUser.objects.get(uuid=uuid)
+        queryset = Todo.objects.filter(donebool=False, owner=owner)
+        return queryset
+
+
+@api_view(["GET"])
 def notificationlength(request, uuid):
-    if request.method=="GET":
-        owner=TodoUser.objects.get(uuid=uuid)
-        queryset=Todo.objects.filter(donebool=False, date__lte=localtime(timezone.now()), owner=owner)
-        listlen=len(queryset)
+    if request.method == "GET":
+        owner = TodoUser.objects.get(uuid=uuid)
+        queryset = Todo.objects.filter(
+            donebool=False, date__lte=localtime(timezone.now()), owner=owner
+        )
+        listlen = queryset.count()
+        return Response({"listlen": listlen})
+
+
+class NotificationLengthView(views.APIView):
+    def get(self, **kwargs):
+        uuid = self.kwargs["uuid"]
+        owner = TodoUser.objects.get(uuid=uuid)
+        queryset = Todo.objects.filter(
+            donebool=False, date__lte=localtime(timezone.now()), owner=owner
+        )
+        listlen = queryset.count()
         return Response({"listlen": listlen})

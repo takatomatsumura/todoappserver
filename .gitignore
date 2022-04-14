@@ -1,2 +1,5 @@
-pyvenv
 .venv
+media
+db.sqlite3
+__pycache__
+local.py
